@@ -170,24 +170,25 @@ function UserDelete() {
       <Toaster position="top-center" reverseOrder={false} />
       <div className="card">
         <h1>Hire4Drive User Account Deletion</h1>
-      
-      <div className="form-group">
-        <label>Mobile Number</label>
-        <input
-          type="tel"
-          placeholder="Enter mobile number"
-          value={mobile}
-          onChange={(e) => setMobile(e.target.value)}
-          maxLength={10}
-          disabled={loading}
-        />
-        <button 
-          onClick={handleDeleteAccount} 
-          disabled={loading}
-          className="btn-danger"
-        >
-          {loading ? 'Deleting...' : 'Delete Account'}
-        </button>
+        
+        <div className="form-group">
+          <label>Mobile Number</label>
+          <input
+            type="tel"
+            placeholder="Enter mobile number"
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value)}
+            maxLength={10}
+            disabled={loading}
+          />
+          <button 
+            onClick={handleDeleteAccount} 
+            disabled={loading}
+            className="btn-danger"
+          >
+            {loading ? 'Deleting...' : 'Delete Account'}
+          </button>
+        </div>
       </div>
     </div>
   )
