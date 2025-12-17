@@ -133,9 +133,11 @@ function DriverDelete() {
 
 function UserDelete() {
   const [mobile, setMobile] = useState('')
+  const [otp, setOtp] = useState('')
+  const [showOtpInput, setShowOtpInput] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleDeleteAccount = async () => {
+  const handleSendOtp = async () => {
     if (!mobile || mobile.length < 10) {
       toast.error('Please enter a valid mobile number')
       return
@@ -143,7 +145,7 @@ function UserDelete() {
 
     setLoading(true)
     try {
-      const response = await fetch(`${BASE_URL}/api/rider-auth/delete-rider`, {
+      const response = await fetch(`${BASE_URL}/api/rider-auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile })
@@ -152,10 +154,55 @@ function UserDelete() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        toast.success(data.message || 'Account deleted successfully')
-        setMobile('')
+        toast.success(data.message || 'OTP sent successfully')
+        setShowOtpInput(true)
       } else {
-        toast.error(data.message || 'Failed to delete account')
+        toast.error(data.message || 'Failed to send OTP')
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyAndDelete = async () => {
+    if (!otp || otp.length < 6) {
+      toast.error('Please enter a valid OTP')
+      return
+    }
+
+    setLoading(true)
+    try {
+      // First verify OTP
+      const verifyResponse = await fetch(`${BASE_URL}/api/rider-auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, otp })
+      })
+
+      const verifyData = await verifyResponse.json()
+
+      if (verifyResponse.ok && verifyData.success) {
+        // If OTP verified, delete account
+        const deleteResponse = await fetch(`${BASE_URL}/api/rider-auth/delete-rider`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile })
+        })
+
+        const deleteData = await deleteResponse.json()
+
+        if (deleteResponse.ok && deleteData.success) {
+          toast.success(deleteData.message || 'Account deleted successfully')
+          setMobile('')
+          setOtp('')
+          setShowOtpInput(false)
+        } else {
+          toast.error(deleteData.message || 'Failed to delete account')
+        }
+      } else {
+        toast.error(verifyData.message || 'Invalid OTP')
       }
     } catch (error) {
       toast.error('Network error. Please try again.')
@@ -170,24 +217,55 @@ function UserDelete() {
       <div className="card">
         <h1>Hire4Drive User Account Deletion</h1>
         
-        <div className="form-group">
-          <label>Mobile Number</label>
-          <input
-            type="tel"
-            placeholder="Enter mobile number"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-            maxLength={10}
-            disabled={loading}
-          />
-          <button 
-            onClick={handleDeleteAccount} 
-            disabled={loading}
-            className="btn-danger"
-          >
-            {loading ? 'Deleting...' : 'Delete Account'}
-          </button>
-        </div>
+        {!showOtpInput ? (
+          <div className="form-group">
+            <label>Mobile Number</label>
+            <input
+              type="tel"
+              placeholder="Enter mobile number"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              maxLength={10}
+              disabled={loading}
+            />
+            <button 
+              onClick={handleSendOtp} 
+              disabled={loading}
+              className="btn-primary"
+            >
+              {loading ? 'Sending...' : 'Send OTP'}
+            </button>
+          </div>
+        ) : (
+          <div className="form-group">
+            <label>Enter OTP</label>
+            <input
+              type="text"
+              placeholder="Enter 6-digit OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
+              disabled={loading}
+            />
+            <button 
+              onClick={handleVerifyAndDelete} 
+              disabled={loading}
+              className="btn-danger"
+            >
+              {loading ? 'Deleting...' : 'Delete Account'}
+            </button>
+            <button 
+              onClick={() => {
+                setShowOtpInput(false)
+                setOtp('')
+              }} 
+              disabled={loading}
+              className="btn-secondary"
+            >
+              Back
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
