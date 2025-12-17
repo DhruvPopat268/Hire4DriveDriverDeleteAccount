@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { HashRouter as Router, Routes, Route } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { Toaster, toast } from 'react-hot-toast'
 import './App.css'
 
@@ -195,14 +194,14 @@ function UserDelete() {
 }
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<DriverDelete />} />
-        <Route path="/user" element={<UserDelete />} />
-      </Routes>
-    </Router>
-  )
+  const [isUserPage, setIsUserPage] = useState(false)
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    setIsUserPage(urlParams.get('type') === 'user')
+  }, [])
+
+  return isUserPage ? <UserDelete /> : <DriverDelete />
 }
 
 export default App
